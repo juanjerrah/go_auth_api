@@ -25,6 +25,7 @@ type RedisConfig struct {
 	URI      string
 	Password string
 	DB       int
+	Timeout  time.Duration
 }
 
 func LoadConfig() *Config {
@@ -44,6 +45,7 @@ func LoadConfig() *Config {
 			URI:      getEnv("REDIS_URI", "localhost:6379"),
 			Password: getEnv("REDIS_PASSWORD", ""),
 			DB:       redisDB,
+			Timeout:  5 * time.Second,
 		},
 	}
 }
