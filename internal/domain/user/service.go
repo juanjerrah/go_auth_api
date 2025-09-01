@@ -5,8 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/juanjerrah/go_auth_api/internal/domain/hash"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"github.com/juanjerrah/go_auth_api/internal/utils"
 )
 
 var (
@@ -23,18 +22,47 @@ type Service interface {
 	UpdateUser(ctx context.Context, id string, req *UpdateUserRequest) error
 	DeleteUser(ctx context.Context, id string) error
 	Authenticate(ctx context.Context, email, password string) (*User, error)
+	ChangePassword(ctx context.Context, id, oldPassword, newPassword string) error
 }
 
 type service struct {
-	repo   Repository
-	hasher hash.PasswordHasher
+	repo     Repository
+	hasher   utils.PasswordHasher
+	mongoUtils utils.MongoUtils
 }
 
-func NewService(repo Repository, hasher hash.PasswordHasher) Service {
+
+func NewService(repo Repository, hasher utils.PasswordHasher, mongoUtils utils.MongoUtils) Service {
 	return &service{
 		repo:   repo,
 		hasher: hasher,
 	}
+}
+
+// ChangePassword implements Service.
+func (s *service) ChangePassword(ctx context.Context, id string, oldPassword string, newPassword string) error {
+	user, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return ErrUserNotFound
+	}
+
+	if err := s.hasher.Verify(oldPassword, user.Password); err != nil {
+		return ErrInvalidPassword
+	}
+
+	hashedPassword, err := s.hasher.Hash(newPassword)
+	if err != nil {
+		return err
+	}
+
+	user.Password = hashedPassword
+	user.UpdatedAt = time.Now().UTC()
+
+	if err := s.repo.Update(ctx, user); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Authenticate implements Service.
@@ -44,7 +72,7 @@ func (s *service) Authenticate(ctx context.Context, email string, password strin
 		return nil, ErrInvalidEmail
 	}
 
-	if err := s.hasher.Compare(user.Password, password); err != nil {
+	if err := s.hasher.Verify(password, user.Password); err != nil {
 		return nil, ErrInvalidPassword
 	}
 
@@ -53,7 +81,7 @@ func (s *service) Authenticate(ctx context.Context, email string, password strin
 
 // CreateUser implements Service.
 func (s *service) CreateUser(ctx context.Context, req *CreateUserRequest) (*UserResponse, error) {
-	exist, err := s.repo.ExistsByEmail(ctx, req.Email);
+	exist, err := s.repo.ExistsByEmail(ctx, req.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -65,11 +93,11 @@ func (s *service) CreateUser(ctx context.Context, req *CreateUserRequest) (*User
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var user = &User{
-		ID:       primitive.NewObjectID(),
-		Email:    req.Email,
-		Password: hashedPassword,
+		ID:        s.mongoUtils.GenerateObjectID(),
+		Email:     req.Email,
+		Password:  hashedPassword,
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
 	}
@@ -83,12 +111,7 @@ func (s *service) CreateUser(ctx context.Context, req *CreateUserRequest) (*User
 
 // DeleteUser implements Service.
 func (s *service) DeleteUser(ctx context.Context, id string) error {
-	userID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return err
-	}
-
-	if err := s.repo.Delete(ctx, userID); err != nil {
+	if err := s.repo.Delete(ctx, id); err != nil {
 		return err
 	}
 
@@ -106,12 +129,7 @@ func (s *service) GetUserByEmail(ctx context.Context, email string) (*UserRespon
 
 // GetUserByID implements Service.
 func (s *service) GetUserByID(ctx context.Context, id string) (*UserResponse, error) {
-	userID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, ErrUserNotFound
-	}
-
-	user, err := s.repo.FindByID(ctx, userID)
+	user, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return nil, ErrUserNotFound
 	}
@@ -120,12 +138,7 @@ func (s *service) GetUserByID(ctx context.Context, id string) (*UserResponse, er
 
 // UpdateUser implements Service.
 func (s *service) UpdateUser(ctx context.Context, id string, req *UpdateUserRequest) error {
-	userID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return ErrUserNotFound
-	}
-
-	user, err := s.repo.FindByID(ctx, userID)
+	user, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return ErrUserNotFound
 	}
