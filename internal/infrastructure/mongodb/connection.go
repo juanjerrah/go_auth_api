@@ -3,8 +3,8 @@ package mongodb
 import (
 	"context"
 	"log"
-	"time"
 
+	"github.com/juanjerrah/go_auth_api/internal/config"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -22,12 +22,8 @@ func NewMongoDB(client *mongo.Client, databaseName string) *MongoDB {
 	}
 }
 
-type MongoDBConfig struct {
-	URI     string
-	Timeout time.Duration
-}
 
-func ConnectMongoDB(cfg MongoDBConfig) (*mongo.Client, error) {
+func ConnectMongoDB(cfg config.MongoDBConfig) (*mongo.Client, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), cfg.Timeout)
 	defer cancel()
 
