@@ -34,9 +34,10 @@ func main() {
 	// Initialize utilities
 	passwordHasher := utils.NewBcryptPasswordHasher(12)
 	jwtManager := utils.NewJWTManager(cfg.JWTSecret, cfg.TokenExpiresIn)
+	mongoUtils := utils.NewMongoUtils()
 
 	// Initialize Services
-	userService := user.NewService(userRepo, passwordHasher)
+	userService := user.NewService(userRepo, passwordHasher, mongoUtils)
 
 	// Initialize Gin
 	router := gin.Default()
