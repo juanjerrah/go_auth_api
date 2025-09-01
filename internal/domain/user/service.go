@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/juanjerrah/go_auth_api/internal/utils"
+	"github.com/juanjerrah/go_auth_api/pkg/common"
 )
 
 var (
@@ -26,21 +26,22 @@ type Service interface {
 }
 
 type service struct {
-	repo     Repository
-	hasher   utils.PasswordHasher
-	mongoUtils utils.MongoUtils
+	repo       Repository
+	hasher     common.PasswordHasher
+	mongoUtils common.MongoUtils
 }
 
-
-func NewService(repo Repository, hasher utils.PasswordHasher, mongoUtils utils.MongoUtils) Service {
+func NewService(repo Repository, hasher common.PasswordHasher, mongoUtils common.MongoUtils) Service {
 	return &service{
-		repo:   repo,
-		hasher: hasher,
+		repo:       repo,
+		hasher:     hasher,
+		mongoUtils: mongoUtils,
 	}
 }
 
 // ChangePassword implements Service.
 func (s *service) ChangePassword(ctx context.Context, id string, oldPassword string, newPassword string) error {
+
 	user, err := s.repo.FindByID(ctx, id)
 	if err != nil {
 		return ErrUserNotFound
@@ -98,6 +99,7 @@ func (s *service) CreateUser(ctx context.Context, req *CreateUserRequest) (*User
 		ID:        s.mongoUtils.GenerateObjectID(),
 		Email:     req.Email,
 		Password:  hashedPassword,
+		Role:      req.Role,
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
 	}
@@ -111,6 +113,7 @@ func (s *service) CreateUser(ctx context.Context, req *CreateUserRequest) (*User
 
 // DeleteUser implements Service.
 func (s *service) DeleteUser(ctx context.Context, id string) error {
+
 	if err := s.repo.Delete(ctx, id); err != nil {
 		return err
 	}

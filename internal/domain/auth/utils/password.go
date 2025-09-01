@@ -1,15 +1,17 @@
 package utils
 
-import (
-	"github.com/juanjerrah/go_auth_api/pkg/common"
-	"golang.org/x/crypto/bcrypt"
-)
+import "golang.org/x/crypto/bcrypt"
+
+type PasswordHasher interface {
+	Hash(password string) (string, error)
+	Verify(password, hash string) error
+}
 
 type passwordHasher struct {
 	cost int
 }
 
-func NewBcryptPasswordHasher(cost int) common.PasswordHasher {
+func NewBcryptPasswordHasher(cost int) PasswordHasher {
 	return &passwordHasher{cost: cost}
 }
 
@@ -26,3 +28,4 @@ func (p *passwordHasher) Hash(password string) (string, error) {
 func (p *passwordHasher) Verify(password string, hash string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 }
+
