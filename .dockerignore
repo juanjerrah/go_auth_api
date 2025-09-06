@@ -1,0 +1,23 @@
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Binary
+/api
+
+# Environment variables
+.env
+
+# IDE specific files
+.idea
+.vscode
+
+# Misc
+*.md
+!README.md
+LICENSE
