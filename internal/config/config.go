@@ -38,12 +38,12 @@ func LoadConfig() *Config {
 		TokenExpiresIn: time.Duration(tokenExpiresIn) * time.Second,
 		MongoDB: MongoDBConfig{
 			URI:      getEnv("MONGODB_URI", "mongodb://localhost:27017"),
-			Database: getEnv("MONGODB_DATABASE", "webapi"),
+			Database: getEnv("MONGODB_DATABASE", "Users"),
 			Timeout:  10 * time.Second,
 		},
 		Redis: RedisConfig{
-			URI:      getEnv("REDIS_URI", "localhost:6379"),
-			Password: getEnv("REDIS_PASSWORD", ""),
+			URI:      getEnv("REDIS_URI", "127.0.0.1:6379"),
+			Password: getEnv("REDIS_PASSWORD", "12345"),
 			DB:       redisDB,
 			Timeout:  5 * time.Second,
 		},

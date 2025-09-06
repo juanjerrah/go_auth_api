@@ -10,20 +10,14 @@ import (
 	"github.com/juanjerrah/go_auth_api/internal/domain/auth"
 )
 
-type TokenRepository interface {
-	StoreToken(ctx context.Context, token string, authCtx *auth.AuthContext, expiration time.Duration) error
-	GetToken(ctx context.Context, token string) (*auth.AuthContext, error)
-	DeleteToken(ctx context.Context, token string) error
-	InvalidateUserTokens(ctx context.Context, userID string) error
-	TokenExists(ctx context.Context, token string) (bool, error)
-}
+
 
 type RedisTokenRepository struct {
 	client *redis.Client
 	prefix string
 }
 
-func NewTokenRepository(client *redis.Client) TokenRepository {
+func NewTokenRepository(client *redis.Client) auth.TokenRepository {
 	return &RedisTokenRepository{
 		client: client,
 		prefix: "token:",

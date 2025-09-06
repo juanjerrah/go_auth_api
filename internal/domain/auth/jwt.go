@@ -26,6 +26,10 @@ func NewJWTManager(secretKey string, tokenDuration time.Duration) *JWTManager {
 	}
 }
 
+func (m *JWTManager) GetTokenDuration() time.Duration {
+    return m.tokenDuration
+}
+
 func (m *JWTManager) GenerateToken(userID, email string, role types.Role) (string, error) {
 	claims := &Claims{
 		UserID: userID,

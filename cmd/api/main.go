@@ -1,3 +1,23 @@
+// @title           Go Auth API
+// @version         1.0
+// @description     API de autenticação e autorização com Go
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   Juan Jerrah
+// @contact.url    https://github.com/juanjerrah
+// @contact.email  seu-email@example.com
+
+// @license.name  MIT
+// @license.url   https://opensource.org/licenses/MIT
+
+// @host      localhost:8080
+// @BasePath  /api
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
+
 package api
 
 import (
@@ -5,6 +25,7 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/juanjerrah/go_auth_api/docs" // swagger docs gerado automaticamente
 	"github.com/juanjerrah/go_auth_api/internal/config"
 	"github.com/juanjerrah/go_auth_api/internal/delivery/http/handlers"
 	"github.com/juanjerrah/go_auth_api/internal/domain/auth"
@@ -13,6 +34,8 @@ import (
 	"github.com/juanjerrah/go_auth_api/internal/infrastructure/redis"
 	"github.com/juanjerrah/go_auth_api/internal/utils"
 	"github.com/juanjerrah/go_auth_api/pkg/middleware"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func main() {
@@ -51,7 +74,7 @@ func main() {
 	router := gin.Default()
 
 	// Initialize Handlers
-	authHandler := handlers.NewAuthHandler(userService, jwtManager)
+	authHandler := handlers.NewAuthHandler(userService, jwtManager, authService)
 	userHandler := handlers.NewUserHandler(userService)
 
 	// Routes
@@ -68,6 +91,9 @@ func main() {
 			protected.PUT("/users/:id/password", userHandler.ChangePassword)
 		}
 	}
+
+	// Configurando o Swagger
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// Start server
 	if err := router.Run(":" + cfg.ServerPort); err != nil {
