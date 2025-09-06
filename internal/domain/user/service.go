@@ -97,6 +97,7 @@ func (s *service) CreateUser(ctx context.Context, req *CreateUserRequest) (*User
 
 	var user = &User{
 		ID:        s.mongoUtils.GenerateObjectID(),
+		Name:      req.Name,
 		Email:     req.Email,
 		Password:  hashedPassword,
 		Role:      req.Role,
@@ -166,6 +167,7 @@ func (s *service) toResponse(user *User) *UserResponse {
 		ID:        user.ID.Hex(),
 		Name:      user.Name,
 		Email:     user.Email,
+		Role:      string(user.Role),
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 	}

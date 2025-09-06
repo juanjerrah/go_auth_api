@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 	"time"
+
 )
 
 type Config struct {
@@ -26,15 +27,17 @@ type RedisConfig struct {
 	Password string
 	DB       int
 	Timeout  time.Duration
+	UseSSL   bool
 }
 
 func LoadConfig() *Config {
 	tokenExpiresIn, _ := strconv.Atoi(getEnv("TOKEN_EXPIRES_IN", "3600"))
 	redisDB, _ := strconv.Atoi(getEnv("REDIS_DB", "0"))
+	redisUseSSL, _ := strconv.ParseBool(getEnv("REDIS_USE_SSL", "false"))
 
 	return &Config{
 		ServerPort:     getEnv("SERVER_PORT", "8080"),
-		JWTSecret:      getEnv("JWT_SECRET", "your-secret-key"),
+		JWTSecret:      getEnv("JWT_SECRET", "BxZryG/amKX+/czuY8C2Fqk1LjBohUfRDgwrYDbT8GI="),
 		TokenExpiresIn: time.Duration(tokenExpiresIn) * time.Second,
 		MongoDB: MongoDBConfig{
 			URI:      getEnv("MONGODB_URI", "mongodb://localhost:27017"),
@@ -46,6 +49,7 @@ func LoadConfig() *Config {
 			Password: getEnv("REDIS_PASSWORD", "12345"),
 			DB:       redisDB,
 			Timeout:  5 * time.Second,
+			UseSSL:   redisUseSSL,
 		},
 	}
 }

@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"crypto/tls"
 	"log"
 
 	"github.com/juanjerrah/go_auth_api/internal/config"
@@ -12,11 +13,20 @@ func ConnectRedis(cfg *config.RedisConfig) (*redis.Client, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), cfg.Timeout)
 	defer cancel()
 
-	client := redis.NewClient(&redis.Options{
+	options := &redis.Options{
 		Addr:     cfg.URI,
 		Password: cfg.Password,
 		DB:       cfg.DB,
-	})
+	}
+
+	// Configure SSL/TLS if enabled
+	if cfg.UseSSL {
+		options.TLSConfig = &tls.Config{
+			MinVersion: tls.VersionTLS12,
+		}
+	}
+
+	client := redis.NewClient(options)
 
 	_, err := client.Ping(ctx).Result()
 	if err != nil {

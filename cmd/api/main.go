@@ -18,13 +18,14 @@
 // @name Authorization
 // @description Type "Bearer" followed by a space and JWT token.
 
-package api
+package main
 
 import (
 	"context"
 	"log"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	_ "github.com/juanjerrah/go_auth_api/docs" // swagger docs gerado automaticamente
 	"github.com/juanjerrah/go_auth_api/internal/config"
 	"github.com/juanjerrah/go_auth_api/internal/delivery/http/handlers"
@@ -40,6 +41,12 @@ import (
 
 func main() {
 	// Load configuration
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Warning: .env file not found or error loading it. Using default values or system environment variables.")
+	} else {
+		log.Println("Environment variables loaded from .env file")
+	}
 	cfg := config.LoadConfig()
 
 	// Connect to MongoDB
